@@ -1,2 +1,10 @@
 services:
-##
+  cymo.entity_rating_bundle.manager:
+      class: Cymo\Bundle\EntityRatingBundle\Manager\EntityRatingManager
+      arguments:
+      - '@annotations.reader'
+      - '@cymo.entity_rating_bundle.entity_rating_form_factory'
+  cymo.entity_rating_bundle.entity_rating_form_factory:
+      class: Cymo\Bundle\EntityRatingBundle\Factory\EntityRatingFormFactory
+      arguments:
+      - '@form.factory'
