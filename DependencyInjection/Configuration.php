@@ -1,6 +1,6 @@
 <?php
 
-namespace Cymo\EntityRatingBundle\DependencyInjection;
+namespace Cymo\Bundle\EntityRatingBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Blogtrotting\AdventureBundle\Annotation;
+namespace Cymo\Bundle\EntityRatingBundle\Annotation;
 
 use Doctrine\Common\Annotations\Annotation\Attribute;
 use Doctrine\Common\Annotations\Annotation\Attributes;

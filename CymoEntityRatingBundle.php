@@ -1,6 +1,6 @@
 <?php
 
-namespace Cymo\EntityRatingBundle;
+namespace Cymo\Bundle\EntityRatingBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
