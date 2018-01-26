@@ -8,7 +8,7 @@
 
 namespace Cymo\Bundle\EntityRatingBundle\Factory;
 
-use Cymo\Bundle\EntityRatingBundle\Annotation\RatingActivated;
+use Cymo\Bundle\EntityRatingBundle\Annotation\Rated;
 use Cymo\Bundle\EntityRatingBundle\Form\RatingType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -26,7 +26,7 @@ class EntityRatingFormFactory
         $this->formFactory = $formFactory;
     }
 
-    public function getForm($className, RatingActivated $annotation)
+    public function getForm($className, Rated $annotation)
     {
         return $this->formFactory->createBuilder(FormType::class)
             ->add(
@@ -38,11 +38,11 @@ class EntityRatingFormFactory
             )->getForm();
     }
 
-    protected function getChoices(RatingActivated $annotation)
+    protected function getChoices(Rated $annotation)
     {
         $choices = [];
 
-        for ($i = $annotation->getMinRating(); $i <= $annotation->getMaxRating(); $i += $annotation->getRatingStep()) {
+        for ($i = $annotation->getMin(); $i <= $annotation->getMax(); $i += $annotation->getStep()) {
             $choices[] = "$i";
         }
 
