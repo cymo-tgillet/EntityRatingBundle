@@ -7,7 +7,6 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
 
-
 class CymoEntityRatingExtension extends Extension
 {
     /**
@@ -16,10 +15,10 @@ class CymoEntityRatingExtension extends Extension
     public function load(array $configs, ContainerBuilder $container)
     {
         $configuration = new Configuration();
-        $configs = $this->processConfiguration($configuration, $configs);
+        $configs       = $this->processConfiguration($configuration, $configs);
 
-        foreach($configs as $key => $value) {
-            $container->setParameter('cymo_entity_rating.'.$key,$value);
+        foreach ($configs as $key => $value) {
+            $container->setParameter('cymo_entity_rating.'.$key, $value);
         }
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
