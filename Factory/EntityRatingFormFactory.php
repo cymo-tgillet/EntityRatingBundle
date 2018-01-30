@@ -12,6 +12,7 @@ use Cymo\Bundle\EntityRatingBundle\Annotation\Rated;
 use Cymo\Bundle\EntityRatingBundle\Form\RatingType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\FormFactory;
 
 class EntityRatingFormFactory
@@ -26,16 +27,19 @@ class EntityRatingFormFactory
         $this->formFactory = $formFactory;
     }
 
-    public function getForm($className, Rated $annotation)
+    public function getForm(Rated $annotation, $entityType, $entityId)
     {
-        return $this->formFactory->createBuilder(FormType::class)
+        return $this->formFactory->createNamedBuilder('entityrating', FormType::class)
             ->add(
-                'rating',
+                'rate',
                 RatingType::class,
                 [
                     'choices' => $this->getChoices($annotation),
                 ]
-            )->getForm();
+            )
+            ->add('entityType', HiddenType::class, ['data' => $entityType])
+            ->add('entityId', HiddenType::class, ['data' => $entityId])
+            ->getForm();
     }
 
     protected function getChoices(Rated $annotation)
@@ -43,9 +47,9 @@ class EntityRatingFormFactory
         $choices = [];
 
         for ($i = $annotation->getMin(); $i <= $annotation->getMax(); $i += $annotation->getStep()) {
-            $choices[] = "$i";
+            $choices["$i"] = "$i";
         }
 
-        return array_flip($choices);
+        return array_reverse(array_flip($choices));
     }
 }

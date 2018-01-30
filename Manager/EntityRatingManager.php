@@ -4,7 +4,9 @@ namespace Cymo\Bundle\EntityRatingBundle\Manager;
 
 use Cymo\Bundle\EntityRatingBundle\Annotation\Rated;
 use Cymo\Bundle\EntityRatingBundle\Entity\EntityRate;
-use Cymo\Bundle\EntityRatingBundle\Exception\UnsupportedEntityRatingClass;
+use Cymo\Bundle\EntityRatingBundle\Exception\EntityRateIpLimitationReachedException;
+use Cymo\Bundle\EntityRatingBundle\Exception\UndeclaredEntityRatingTypeException;
+use Cymo\Bundle\EntityRatingBundle\Exception\UnsupportedEntityRatingClassException;
 use Cymo\Bundle\EntityRatingBundle\Factory\EntityRatingFormFactory;
 use Cymo\Bundle\EntityRatingBundle\Repository\EntityRateRepository;
 use Doctrine\Common\Annotations\AnnotationReader;
@@ -42,49 +44,68 @@ class EntityRatingManager
         $this->userIp               = $_SERVER['REMOTE_ADDR'];
         $this->userAgent            = $_SERVER['HTTP_USER_AGENT'] ?? null;
         $this->entityManager        = $container->get('doctrine.orm.entity_manager');
-
-        $this->addRate(22, 'step', 3);
     }
 
-    public function createOrUpdateRate($entityId, $entityType, $vote)
+    public function rate($entityType, $entityId, $rateValue)
     {
+        $configTypes = $this->container->getParameter('cymo_entity_rating.map_type_to_class');
 
-        $this->container->getParameter('cymo_entity_rating.rate_by_ip_limitation');
+        if (false === array_key_exists($entityType, $configTypes)) {
+            throw new UndeclaredEntityRatingTypeException(sprintf('You must declare the %s type and the corresponding class under the cymo_entity_rating.map_type_to_class configuration key.', $entityType));
+        }
 
-        $this->entityRateRepository->findBy(
+        if (false === $this->typeIsSupported($configTypes[$entityType])) {
+            throw new UnsupportedEntityRatingClassException(sprintf('Class does not support EntityRating, you must add the `Rated` annotation to the %s class first', $configTypes[$entityType]));
+        }
+
+        /** @var EntityRate $rate */
+        $rate = $this->entityRateRepository->findOneBy(
             [
-                'id'           => $entityId,
-                'targetEntity' => $entityType,
-                'ip'           => $this->userIp,
+                'entityId'   => $entityId,
+                'entityType' => $entityType,
+                'ip'         => $this->userIp,
+                'userAgent'  => $this->userAgent,
             ]
         );
+
+        if ($rate) {
+            $this->updateRate($rate, $rateValue);
+        } else {
+            if ($this->allowRatingEntity($entityId, $entityType)) {
+                $this->addRate($entityId, $entityType, $rateValue);
+            } else {
+                throw new EntityRateIpLimitationReachedException('Rating quota reached for this IP address and object.');
+            }
+        }
     }
 
-    public function removeRate()
+    private function updateRate(EntityRate $rate, $rateValue)
     {
-        
+        $rate->setRate($rateValue);
+        $rate->setUpdatedAt(new \DateTime());
+        $this->entityManager->flush();
     }
 
     public function addRate($entityId, $entityType, $rateValue)
     {
         $rate = new EntityRate();
+        $rate->setRate($rateValue);
+        $rate->setEntityId($entityId);
         $rate->setEntityType($entityType);
         $rate->setIp($this->userIp);
-        $rate->setEntityId($entityId);
         $rate->setUserAgent($this->userAgent);
-        $rate->setRate($rateValue);
         $rate->setCreatedAt(new \DateTime());
 
         $this->entityManager->persist($rate);
         $this->entityManager->flush();
     }
 
-    public function generateForm($class)
+    public function generateForm($class, $entityType, $entityId)
     {
         if ($annotation = $this->typeIsSupported($class)) {
-            return $this->formFactory->getForm($class, $annotation);
+            return $this->formFactory->getForm($annotation, $entityType, $entityId);
         }
-        throw new UnsupportedEntityRatingClass(sprintf('Class does not support EntityRating, you must add the `Rated` annotation to the %s class first', $class));
+        throw new UnsupportedEntityRatingClassException(sprintf('Class does not support EntityRating, you must add the `Rated` annotation to the %s class first', $class));
     }
 
     /**
@@ -105,4 +126,24 @@ class EntityRatingManager
 
         return false;
     }
+
+    private function allowRatingEntity($entityId, $entityType)
+    {
+        $rateByIpLimitation = $this->container->getParameter('cymo_entity_rating.rate_by_ip_limitation');
+
+        if ($rateByIpLimitation == 0) {
+            return true;
+        }
+
+        $rates = $this->entityRateRepository->findBy(
+            [
+                'entityId'   => $entityId,
+                'entityType' => $entityType,
+                'ip'         => $this->userIp,
+            ]
+        );
+
+        return count($rates) < $this->container->getParameter('cymo_entity_rating.rate_by_ip_limitation');
+    }
+
 }

@@ -17,11 +17,11 @@ class RatingType extends AbstractType
             [
                 'label'       => false,
                 'attr'        => ['class' => 'rating'],
-                'choices'     => [1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 5],
+                'choices'     => [5 => 5, 4 => 4, 3 => 3, 2 => 2, 1 => 1],
                 'expanded'    => true,
                 'choice_attr' => function ($val, $key, $index) {
                     return [
-                        'class' => 'star-rating-item star-rating-item-'.$key,
+                        'class' => 'star-rating-item',
                     ];
                 },
             ]

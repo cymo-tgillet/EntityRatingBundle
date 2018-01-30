@@ -8,7 +8,7 @@
 
 namespace Cymo\Bundle\EntityRatingBundle\Exception;
 
-class UnsupportedEntityRatingClass extends \Exception
+class EntityRateIpLimitationReachedException extends \Exception
 {
 
 }
