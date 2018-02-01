@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: cymo
- * Date: 25/01/18
- * Time: 16:42
- */
 
 namespace Cymo\Bundle\EntityRatingBundle\Factory;
 
@@ -29,7 +23,12 @@ class EntityRatingFormFactory
 
     public function getForm(Rated $annotation, $entityType, $entityId)
     {
-        return $this->formFactory->createNamedBuilder('entityrating', FormType::class)
+        return $this->formFactory->createNamedBuilder(
+            'entityrating_'.$entityType.'_'.$entityId,
+            FormType::class,
+            null,
+            ['attr' => ['class' => 'entityrating-form']]
+        )
             ->add(
                 'rate',
                 RatingType::class,
@@ -37,8 +36,8 @@ class EntityRatingFormFactory
                     'choices' => $this->getChoices($annotation),
                 ]
             )
-            ->add('entityType', HiddenType::class, ['data' => $entityType])
-            ->add('entityId', HiddenType::class, ['data' => $entityId])
+            ->add('entityType', HiddenType::class, ['attr' => ['class' => 'entity-type'], 'data' => $entityType])
+            ->add('entityId', HiddenType::class, ['attr' => ['class' => 'entity-id'], 'data' => $entityId])
             ->getForm();
     }
 
