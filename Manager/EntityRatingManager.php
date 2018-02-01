@@ -90,7 +90,6 @@ class EntityRatingManager
         $rate->setEntityType($entityType);
         $rate->setIp($this->userIp);
         $rate->setUserAgent($this->userAgent);
-        $rate->setCreatedAt(new \DateTime());
 
         $this->entityManager->persist($rate);
         $this->entityManager->flush();
@@ -160,7 +159,7 @@ class EntityRatingManager
         return count($rates) < $this->container->getParameter('cymo_entity_rating.rate_by_ip_limitation');
     }
 
-    public function getAverageRate($entityId, $entityType)
+    public function getGlobalRateData($entityId, $entityType)
     {
         $annotation        = $this->checkConfiguration($entityType);
         $averageRateResult = $this->entityRateRepository->getEntityAverageRate($entityId, $entityType);
@@ -168,9 +167,14 @@ class EntityRatingManager
         return [
             'averageRate' => $averageRateResult['average_rate'],
             'rateCount'   => $averageRateResult['rate_count'],
+            'minRate'     => $annotation->getMin(),
             'maxRate'     => $annotation->getMax(),
-            'minRate'     => $annotation->getMax(),
         ];
+    }
+
+    public function getUserCurrentRate($entityId, $entityType)
+    {
+        return $this->entityRateRepository->getRateByIpAndUserAgent($this->userIp, $this->userAgent, $entityId, $entityType);
     }
 
 }
