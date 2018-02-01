@@ -20,6 +20,8 @@ class Configuration implements ConfigurationInterface
         $rootNode    = $treeBuilder->root('cymo_entity_rating_bundle');
         $rootNode
             ->children()
+                ->scalarNode('entity_rating_class')
+                ->end()
                 ->integerNode('rate_by_ip_limitation')
                     ->defaultValue(10)
                 ->end()
@@ -27,9 +29,6 @@ class Configuration implements ConfigurationInterface
                     ->prototype('scalar')->end()
                 ->end()
             ->end();
-        // Here you should define the parameters that are allowed to
-        // configure your bundle. See the documentation linked above for
-        // more information on that topic.
 
         return $treeBuilder;
     }
