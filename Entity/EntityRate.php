@@ -5,61 +5,56 @@ namespace Cymo\Bundle\EntityRatingBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * EntityRatingRate
- * @ORM\Table(name="entity_rate")
- * @ORM\Entity(repositoryClass="Cymo\Bundle\EntityRatingBundle\Repository\EntityRateRepository")
+ * @ORM\MappedSuperclass
  */
-class EntityRate
+abstract class EntityRate
 {
     /**
      * @var int
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $id;
+    protected $id;
 
     /**
      * @var float
      * @ORM\Column(name="rate", type="float")
      */
-    private $rate;
+    protected $rate;
 
     /**
      * @var int
      * @ORM\Column(name="entity_id", type="integer")
      */
-    private $entityId;
+    protected $entityId;
 
     /**
      * @var string
      * @ORM\Column(name="entity_type", type="string", length=255)
      */
-    private $entityType;
+    protected $entityType;
 
     /**
      * @var string
      * @ORM\Column(name="ip", type="string", length=255)
      */
-    private $ip;
+    protected $ip;
 
     /**
      * @var string
      * @ORM\Column(name="user_agent", type="string", length=255)
      */
-    private $userAgent;
+    protected $userAgent;
 
     /**
      * @var \DateTime
      * @ORM\Column(name="created_at", type="datetime")
      */
-    private $createdAt;
+    protected $createdAt;
 
     /**
      * @var \DateTime
      * @ORM\Column(name="updated_at", type="datetime", nullable=true)
      */
-    private $updatedAt;
+    protected $updatedAt;
 
     /**
      * @return int
@@ -179,6 +174,11 @@ class EntityRate
     public function setEntityId(int $entityId)
     {
         $this->entityId = $entityId;
+    }
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTime();
     }
 
 }
