@@ -25,7 +25,7 @@ class EntityRatingController extends Controller
         $ratingManager = $this->container->get('cymo.entity_rating_bundle.manager');
 
         try {
-            $form = $this->get('cymo.entity_rating_bundle.manager')->generateForm(Itinerary::class, $type, $id);
+            $form = $this->get('cymo.entity_rating_bundle.manager')->generateForm($type, $id);
             $form->handleRequest($request);
             if ($form->isValid() && $form->isSubmitted()) {
                 $ratingManager->rate(

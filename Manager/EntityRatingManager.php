@@ -34,29 +34,22 @@ class EntityRatingManager
     public function __construct(
         AnnotationReader $annotationReader,
         EntityRatingFormFactory $formFactory,
-        EntityRateRepository $entityRateRepository,
         Container $container
     ) {
         $this->annotationReader     = $annotationReader;
         $this->formFactory          = $formFactory;
-        $this->entityRateRepository = $entityRateRepository;
         $this->container            = $container;
         $this->userIp               = $_SERVER['REMOTE_ADDR'];
         $this->userAgent            = $_SERVER['HTTP_USER_AGENT'] ?? null;
         $this->entityManager        = $container->get('doctrine.orm.entity_manager');
+        $this->configTypes          = $this->container->getParameter('cymo_entity_rating.map_type_to_class');
+        $this->entityRatingClass    = $this->container->getParameter('cymo_entity_rating.entity_rating_class');
+        $this->entityRateRepository = $this->entityManager->getRepository($this->entityRatingClass);
     }
 
     public function rate($entityType, $entityId, $rateValue)
     {
-        $configTypes = $this->container->getParameter('cymo_entity_rating.map_type_to_class');
-
-        if (false === array_key_exists($entityType, $configTypes)) {
-            throw new UndeclaredEntityRatingTypeException(sprintf('You must declare the %s type and the corresponding class under the cymo_entity_rating.map_type_to_class configuration key.', $entityType));
-        }
-
-        if (false === $this->typeIsSupported($configTypes[$entityType])) {
-            throw new UnsupportedEntityRatingClassException(sprintf('Class does not support EntityRating, you must add the `Rated` annotation to the %s class first', $configTypes[$entityType]));
-        }
+        $this->checkConfiguration($entityType);
 
         /** @var EntityRate $rate */
         $rate = $this->entityRateRepository->findOneBy(
@@ -88,7 +81,10 @@ class EntityRatingManager
 
     public function addRate($entityId, $entityType, $rateValue)
     {
-        $rate = new EntityRate();
+        $this->checkConfiguration($entityType);
+
+        /** @var EntityRate $rate */
+        $rate = new $this->entityRatingClass();
         $rate->setRate($rateValue);
         $rate->setEntityId($entityId);
         $rate->setEntityType($entityType);
@@ -100,12 +96,30 @@ class EntityRatingManager
         $this->entityManager->flush();
     }
 
-    public function generateForm($class, $entityType, $entityId)
+    /**
+     * @param $entityType
+     * @param $entityId
+     *
+     * @return \Symfony\Component\Form\FormInterface
+     */
+    public function generateForm($entityType, $entityId)
     {
-        if ($annotation = $this->typeIsSupported($class)) {
-            return $this->formFactory->getForm($annotation, $entityType, $entityId);
+        $annotation = $this->checkConfiguration($entityType);
+
+        return $this->formFactory->getForm($annotation, $entityType, $entityId);
+    }
+
+    private function checkConfiguration($entityType)
+    {
+        if (false === array_key_exists($entityType, $this->configTypes)) {
+            throw new UndeclaredEntityRatingTypeException(sprintf('You must declare the %s type and the corresponding class under the cymo_entity_rating.map_type_to_class configuration key.', $entityType));
         }
-        throw new UnsupportedEntityRatingClassException(sprintf('Class does not support EntityRating, you must add the `Rated` annotation to the %s class first', $class));
+
+        if (false === $annotation = $this->typeIsSupported($this->configTypes[$entityType])) {
+            throw new UnsupportedEntityRatingClassException(sprintf('Class does not support EntityRating, you must add the `Rated` annotation to the %s class first', $this->configTypes[$entityType]));
+        }
+
+        return $annotation;
     }
 
     /**
@@ -144,6 +158,19 @@ class EntityRatingManager
         );
 
         return count($rates) < $this->container->getParameter('cymo_entity_rating.rate_by_ip_limitation');
+    }
+
+    public function getAverageRate($entityId, $entityType)
+    {
+        $annotation        = $this->checkConfiguration($entityType);
+        $averageRateResult = $this->entityRateRepository->getEntityAverageRate($entityId, $entityType);
+
+        return [
+            'averageRate' => $averageRateResult['average_rate'],
+            'rateCount'   => $averageRateResult['rate_count'],
+            'maxRate'     => $annotation->getMax(),
+            'minRate'     => $annotation->getMax(),
+        ];
     }
 
 }
