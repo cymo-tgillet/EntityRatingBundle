@@ -4,6 +4,8 @@ namespace Cymo\Bundle\EntityRatingBundle\Manager;
 
 use Cymo\Bundle\EntityRatingBundle\Annotation\Rated;
 use Cymo\Bundle\EntityRatingBundle\Entity\EntityRate;
+use Cymo\Bundle\EntityRatingBundle\Event\RateCreatedEvent;
+use Cymo\Bundle\EntityRatingBundle\Event\RateUpdatedEvent;
 use Cymo\Bundle\EntityRatingBundle\Exception\EntityRateIpLimitationReachedException;
 use Cymo\Bundle\EntityRatingBundle\Exception\UndeclaredEntityRatingTypeException;
 use Cymo\Bundle\EntityRatingBundle\Exception\UnsupportedEntityRatingClassException;
@@ -11,6 +13,8 @@ use Cymo\Bundle\EntityRatingBundle\Factory\EntityRatingFormFactory;
 use Cymo\Bundle\EntityRatingBundle\Repository\EntityRateRepository;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class EntityRatingManager
 {
@@ -30,11 +34,16 @@ class EntityRatingManager
      * @var Container
      */
     private $container;
+    /**
+     * @var EventDispatcher
+     */
+    private $eventDispatcher;
 
     public function __construct(
         AnnotationReader $annotationReader,
         EntityRatingFormFactory $formFactory,
-        Container $container
+        Container $container,
+        EventDispatcherInterface $eventDispatcher
     ) {
         $this->annotationReader     = $annotationReader;
         $this->formFactory          = $formFactory;
@@ -45,6 +54,7 @@ class EntityRatingManager
         $this->configTypes          = $this->container->getParameter('cymo_entity_rating.map_type_to_class');
         $this->entityRatingClass    = $this->container->getParameter('cymo_entity_rating.entity_rating_class');
         $this->entityRateRepository = $this->entityManager->getRepository($this->entityRatingClass);
+        $this->eventDispatcher      = $eventDispatcher;
     }
 
     public function rate($entityType, $entityId, $rateValue)
@@ -77,6 +87,7 @@ class EntityRatingManager
         $rate->setRate($rateValue);
         $rate->setUpdatedAt(new \DateTime());
         $this->entityManager->flush();
+        $this->eventDispatcher->dispatch(RateUpdatedEvent::NAME, new RateUpdatedEvent($rate));
     }
 
     public function addRate($entityId, $entityType, $rateValue)
@@ -93,6 +104,7 @@ class EntityRatingManager
 
         $this->entityManager->persist($rate);
         $this->entityManager->flush();
+        $this->eventDispatcher->dispatch(RateCreatedEvent::NAME, new RateCreatedEvent($rate));
     }
 
     /**
@@ -165,7 +177,7 @@ class EntityRatingManager
         $averageRateResult = $this->entityRateRepository->getEntityAverageRate($entityId, $entityType);
 
         return [
-            'averageRate' => $averageRateResult['average_rate'],
+            'averageRate' => round($averageRateResult['average_rate'], 1),
             'rateCount'   => $averageRateResult['rate_count'],
             'minRate'     => $annotation->getMin(),
             'maxRate'     => $annotation->getMax(),
@@ -175,6 +187,14 @@ class EntityRatingManager
     public function getUserCurrentRate($entityId, $entityType)
     {
         return $this->entityRateRepository->getRateByIpAndUserAgent($this->userIp, $this->userAgent, $entityId, $entityType);
+    }
+
+    /**
+     * @return EntityRateRepository
+     */
+    public function getEntityRateRepository(): EntityRateRepository
+    {
+        return $this->entityRateRepository;
     }
 
 }
