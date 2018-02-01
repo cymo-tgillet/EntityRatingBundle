@@ -3,14 +3,9 @@ services:
       class: Cymo\Bundle\EntityRatingBundle\Manager\EntityRatingManager
       arguments:
       - '@annotations.reader'
-      - '@cymo.entity_rating_bundle.entity_rating_form_factory'
-      - '@cymo.entity_rating_bundle.entity_rate_repository'
+      - '@cymo.entity_rating_bundle.form_factory'
       - '@service_container'
-  cymo.entity_rating_bundle.entity_rating_form_factory:
+  cymo.entity_rating_bundle.form_factory:
       class: Cymo\Bundle\EntityRatingBundle\Factory\EntityRatingFormFactory
       arguments:
       - '@form.factory'
-  cymo.entity_rating_bundle.entity_rate_repository:
-      class: Cymo\Bundle\EntityRatingBundle\Repository\EntityRateRepository
-      factory: ['@doctrine.orm.default_entity_manager', 'getRepository']
-      arguments: ['Cymo\Bundle\EntityRatingBundle\Entity\EntityRate']
