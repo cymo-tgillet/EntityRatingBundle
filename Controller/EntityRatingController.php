@@ -1,18 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: cymo
- * Date: 25/01/18
- * Time: 16:28
- */
 
 namespace Cymo\Bundle\EntityRatingBundle\Controller;
 
-use Blogtrotting\AdventureBundle\Entity\Itinerary\Itinerary;
-use Cymo\Bundle\EntityRatingBundle\Entity\EntityRate;
+use Blogtrotting\AdventureBundle\Manager\EntityRatingManager;
 use Cymo\Bundle\EntityRatingBundle\Exception\EntityRateIpLimitationReachedException;
-use Cymo\Bundle\EntityRatingBundle\Form\RatingType;
-use Cymo\Bundle\EntityRatingBundle\Manager\EntityRatingManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,23 +12,26 @@ class EntityRatingController extends Controller
 {
     public function rateEntityAction(Request $request, $type, $id)
     {
+        $manager = $this->container->getParameter('cymo_entity_rating.entity_rating_manager_service');
         /** @var EntityRatingManager $ratingManager */
-        $ratingManager = $this->container->get('cymo.entity_rating_bundle.manager');
+        $ratingManager = $this->container->get($manager);
 
         try {
-            $form = $this->get('cymo.entity_rating_bundle.manager')->generateForm($type, $id);
+            $form = $ratingManager->generateForm($type, $id);
             $form->handleRequest($request);
-            if ($form->isValid() && $form->isSubmitted()) {
+            if ($form->isSubmitted() && $form->isValid()) {
                 $ratingManager->rate(
                     $form->get('entityType')->getData(),
                     $form->get('entityId')->getData(),
                     $form->get('rate')->getData()
                 );
+
+                return new JsonResponse(['success' => true]);
             }
         } catch (EntityRateIpLimitationReachedException $e) {
             return new JsonResponse(['success' => false, 'errorMessage' => $e->getMessage()], 300);
         }
 
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => false, 'errorMessage' => 'An error occured. Sorry.'], 300);
     }
 }
