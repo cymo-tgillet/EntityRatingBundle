@@ -18,9 +18,9 @@ class EntityRateRepository extends EntityRepository implements EntityRateReposit
             ->getSingleResult();
     }
 
-    public function getRateByIpAndUserAgent($ip, $userAgent, $entityId, $entityType)
+    public function getRateByIpAndUserAgent($ip, $userAgent, $entityId, $entityType, $ignoreFields)
     {
-        return $this->createQueryBuilder('er')
+        $q = $this->createQueryBuilder('er')
             ->where('er.entityType = :entity_type')
             ->setParameter('entity_type', $entityType)
             ->andWhere('er.entityId = :entity_id')
@@ -28,8 +28,15 @@ class EntityRateRepository extends EntityRepository implements EntityRateReposit
             ->andWhere('er.userAgent = :user_agent')
             ->setParameter('user_agent', $userAgent)
             ->andWhere('er.ip = :ip')
-            ->setParameter('ip', $ip)
-            ->getQuery()
+            ->setParameter('ip', $ip);
+
+        if (!empty($ignoreFields)) {
+            foreach ($ignoreFields as $ignoreField) {
+                $q->andWhere('er.'.$ignoreField.' is null');
+            }
+        }
+
+        return $q->getQuery()
             ->getOneOrNullResult();
     }
 

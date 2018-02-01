@@ -3,6 +3,7 @@
 namespace Cymo\Bundle\EntityRatingBundle\Event;
 
 use Cymo\Bundle\EntityRatingBundle\Entity\EntityRate;
+use Cymo\Bundle\EntityRatingBundle\Entity\EntityRateInterface;
 use Symfony\Component\EventDispatcher\Event;
 
 class RateCreatedEvent extends Event
@@ -13,15 +14,15 @@ class RateCreatedEvent extends Event
      */
     private $entityRate;
 
-    public function __construct(EntityRate $entityRate)
+    public function __construct(EntityRateInterface $entityRate)
     {
         $this->entityRate = $entityRate;
     }
 
     /**
-     * @return EntityRate
+     * @return EntityRateInterface
      */
-    public function getEntityRate(): EntityRate
+    public function getEntityRate(): EntityRateInterface
     {
         return $this->entityRate;
     }

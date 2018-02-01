@@ -4,6 +4,7 @@ namespace Cymo\Bundle\EntityRatingBundle\Manager;
 
 use Cymo\Bundle\EntityRatingBundle\Annotation\Rated;
 use Cymo\Bundle\EntityRatingBundle\Entity\EntityRate;
+use Cymo\Bundle\EntityRatingBundle\Entity\EntityRateInterface;
 use Cymo\Bundle\EntityRatingBundle\Event\RateCreatedEvent;
 use Cymo\Bundle\EntityRatingBundle\Event\RateUpdatedEvent;
 use Cymo\Bundle\EntityRatingBundle\Exception\EntityRateIpLimitationReachedException;
@@ -21,23 +22,23 @@ class EntityRatingManager
     /**
      * @var AnnotationReader
      */
-    private $annotationReader;
+    protected $annotationReader;
     /**
      * @var EntityRatingFormFactory
      */
-    private $formFactory;
+    protected $formFactory;
     /**
      * @var EntityRateRepository
      */
-    private $entityRateRepository;
+    protected $entityRateRepository;
     /**
      * @var Container
      */
-    private $container;
+    protected $container;
     /**
      * @var EventDispatcher
      */
-    private $eventDispatcher;
+    protected $eventDispatcher;
 
     public function __construct(
         AnnotationReader $annotationReader,
@@ -45,16 +46,18 @@ class EntityRatingManager
         Container $container,
         EventDispatcherInterface $eventDispatcher
     ) {
-        $this->annotationReader     = $annotationReader;
-        $this->formFactory          = $formFactory;
-        $this->container            = $container;
-        $this->userIp               = $_SERVER['REMOTE_ADDR'];
-        $this->userAgent            = $_SERVER['HTTP_USER_AGENT'] ?? null;
-        $this->entityManager        = $container->get('doctrine.orm.entity_manager');
+        $this->container        = $container;
+        $this->annotationReader = $annotationReader;
+        $this->formFactory      = $formFactory;
+        $this->eventDispatcher  = $eventDispatcher;
+        $this->entityManager    = $container->get('doctrine.orm.entity_manager');
+
+        $this->userIp    = $_SERVER['REMOTE_ADDR'];
+        $this->userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+
         $this->configTypes          = $this->container->getParameter('cymo_entity_rating.map_type_to_class');
         $this->entityRatingClass    = $this->container->getParameter('cymo_entity_rating.entity_rating_class');
         $this->entityRateRepository = $this->entityManager->getRepository($this->entityRatingClass);
-        $this->eventDispatcher      = $eventDispatcher;
     }
 
     public function rate($entityType, $entityId, $rateValue)
@@ -62,14 +65,7 @@ class EntityRatingManager
         $this->checkConfiguration($entityType);
 
         /** @var EntityRate $rate */
-        $rate = $this->entityRateRepository->findOneBy(
-            [
-                'entityId'   => $entityId,
-                'entityType' => $entityType,
-                'ip'         => $this->userIp,
-                'userAgent'  => $this->userAgent,
-            ]
-        );
+        $rate = $this->getUserCurrentRate($entityId, $entityType);
 
         if ($rate) {
             $this->updateRate($rate, $rateValue);
@@ -82,29 +78,36 @@ class EntityRatingManager
         }
     }
 
-    private function updateRate(EntityRate $rate, $rateValue)
-    {
-        $rate->setRate($rateValue);
-        $rate->setUpdatedAt(new \DateTime());
-        $this->entityManager->flush();
-        $this->eventDispatcher->dispatch(RateUpdatedEvent::NAME, new RateUpdatedEvent($rate));
-    }
-
-    public function addRate($entityId, $entityType, $rateValue)
+    protected function addRate($entityId, $entityType, $rateValue)
     {
         $this->checkConfiguration($entityType);
 
-        /** @var EntityRate $rate */
-        $rate = new $this->entityRatingClass();
-        $rate->setRate($rateValue);
-        $rate->setEntityId($entityId);
-        $rate->setEntityType($entityType);
-        $rate->setIp($this->userIp);
-        $rate->setUserAgent($this->userAgent);
+        /** @var EntityRateInterface $rate */
+        $rate = $this->hydrateEntity(new $this->entityRatingClass(), $entityId, $entityType, $rateValue);
 
         $this->entityManager->persist($rate);
         $this->entityManager->flush();
         $this->eventDispatcher->dispatch(RateCreatedEvent::NAME, new RateCreatedEvent($rate));
+    }
+
+    protected function updateRate(EntityRate $rate, $rateValue)
+    {
+        $rate->setRate($rateValue);
+        $rate->setUpdatedAt(new \DateTime());
+
+        $this->entityManager->flush();
+        $this->eventDispatcher->dispatch(RateUpdatedEvent::NAME, new RateUpdatedEvent($rate));
+    }
+
+    protected function hydrateEntity(EntityRateInterface $rate, $entityId, $entityType, $rateValue)
+    {
+        $rate->setEntityId($entityId);
+        $rate->setEntityType($entityType);
+        $rate->setRate($rateValue);
+        $rate->setIp($this->userIp);
+        $rate->setUserAgent($this->userAgent);
+
+        return $rate;
     }
 
     /**
@@ -120,7 +123,7 @@ class EntityRatingManager
         return $this->formFactory->getForm($annotation, $entityType, $entityId);
     }
 
-    private function checkConfiguration($entityType)
+    protected function checkConfiguration($entityType)
     {
         if (false === array_key_exists($entityType, $this->configTypes)) {
             throw new UndeclaredEntityRatingTypeException(sprintf('You must declare the %s type and the corresponding class under the cymo_entity_rating.map_type_to_class configuration key.', $entityType));
@@ -152,7 +155,20 @@ class EntityRatingManager
         return false;
     }
 
-    private function allowRatingEntity($entityId, $entityType)
+    public function getGlobalRateData($entityId, $entityType)
+    {
+        $annotation        = $this->checkConfiguration($entityType);
+        $averageRateResult = $this->entityRateRepository->getEntityAverageRate($entityId, $entityType);
+
+        return [
+            'averageRate' => round($averageRateResult['average_rate'], 1),
+            'rateCount'   => $averageRateResult['rate_count'],
+            'minRate'     => $annotation->getMin(),
+            'maxRate'     => $annotation->getMax(),
+        ];
+    }
+
+    protected function allowRatingEntity($entityId, $entityType)
     {
         $rateByIpLimitation = $this->container->getParameter('cymo_entity_rating.rate_by_ip_limitation');
 
@@ -171,22 +187,9 @@ class EntityRatingManager
         return count($rates) < $this->container->getParameter('cymo_entity_rating.rate_by_ip_limitation');
     }
 
-    public function getGlobalRateData($entityId, $entityType)
+    public function getUserCurrentRate($entityId, $entityType, $ignoreFields = [])
     {
-        $annotation        = $this->checkConfiguration($entityType);
-        $averageRateResult = $this->entityRateRepository->getEntityAverageRate($entityId, $entityType);
-
-        return [
-            'averageRate' => round($averageRateResult['average_rate'], 1),
-            'rateCount'   => $averageRateResult['rate_count'],
-            'minRate'     => $annotation->getMin(),
-            'maxRate'     => $annotation->getMax(),
-        ];
-    }
-
-    public function getUserCurrentRate($entityId, $entityType)
-    {
-        return $this->entityRateRepository->getRateByIpAndUserAgent($this->userIp, $this->userAgent, $entityId, $entityType);
+        return $this->entityRateRepository->getRateByIpAndUserAgent($this->userIp, $this->userAgent, $entityId, $entityType, $ignoreFields);
     }
 
     /**

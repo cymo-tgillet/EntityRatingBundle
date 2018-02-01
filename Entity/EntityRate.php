@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\MappedSuperclass
  */
-abstract class EntityRate
+abstract class EntityRate implements EntityRateInterface
 {
     /**
      * @var int

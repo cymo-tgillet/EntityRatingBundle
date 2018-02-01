@@ -5,6 +5,7 @@ services:
       - '@annotations.reader'
       - '@cymo.entity_rating_bundle.form_factory'
       - '@service_container'
+      - '@event_dispatcher'
   cymo.entity_rating_bundle.form_factory:
       class: Cymo\Bundle\EntityRatingBundle\Factory\EntityRatingFormFactory
       arguments:

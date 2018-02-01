@@ -32,4 +32,9 @@ class RatingType extends AbstractType
     {
         return ChoiceType::class;
     }
+
+    public function getBlockPrefix()
+    {
+        return 'rating';
+    }
 }

@@ -2,9 +2,9 @@
 
 namespace Cymo\Bundle\EntityRatingBundle\Repository;
 
-Interface EntityRateRepositoryInterface
+interface EntityRateRepositoryInterface
 {
     public function getEntityAverageRate($entityId, $entityType);
 
-    public function getRateByIpAndUserAgent($ip, $userAgent, $entityId, $entityType);
+    public function getRateByIpAndUserAgent($ip, $userAgent, $entityId, $entityType, $ignoreFields);
 }
