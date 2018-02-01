@@ -1,11 +1,9 @@
-{#{% form_theme form _self %}#}
-
 {% block _entityrating_rate_widget %}
     <div {{ block('widget_container_attributes') }}>
         <span class="entityrating_wrapper">
             {% for child in form %}
                 <input type="radio" {% if form.vars.value == child.vars.value %}checked{% endif %} id="{{ child.vars.id }}" class="{{ child.vars.attr.class }}" name="{{ child.vars.full_name }}" value="{{ child.vars.value }}">
-                <label for="{{ child.vars.id }}">{{ child.vars.label }}</label>
+                <label title="{{ child.vars.value }}" for="{{ child.vars.id }}">{{ child.vars.label }}</label>
             {% endfor %}
         </span>
     </div>
