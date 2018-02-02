@@ -1,11 +1,13 @@
-<div {% if globalRateData.rateCount == 0 %}style="display: none;" {% endif %}>
-    <div itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
-        <meta itemprop="worstRating" content="{{ globalRateData.minRate }}">
-        <span itemprop="ratingValue">{{ globalRateData.averageRate }}</span> / <span itemprop="bestRating">{{ globalRateData.maxRate }}</span> (<span itemprop="ratingCount">{{ globalRateData.rateCount }}</span> vote{{ globalRateData.rateCount > 1 ? 's' : '' }})
+<div class="entity-rating-wrapper" data-entity-rating-id="{{ form.vars.attr['data-entity-rating-id'] }}">
+    <div class="entity-rating-rate-container" {% if globalRateData.rateCount == 0 %}style="display: none;" {% endif %}>
+        <div itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
+            <meta itemprop="worstRating" content="{{ globalRateData.minRate }}">
+            <span itemprop="ratingValue">{{ globalRateData.averageRate }}</span> / <span itemprop="bestRating">{{ globalRateData.maxRate }}</span> (<span itemprop="ratingCount">{{ globalRateData.rateCount }}</span> vote{{ globalRateData.rateCount > 1 ? 's' : '' }})
+        </div>
     </div>
-</div>
-<div class="star-rating-container">
-    {{ form_start(form) }}
-    {{ form_row(form.rate) }}
-    {{ form_end(form) }}
+    <div class="entity-rating-form-container">
+        {{ form_start(form) }}
+        {{ form_row(form.rate) }}
+        {{ form_end(form) }}
+    </div>
 </div>
