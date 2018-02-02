@@ -26,7 +26,14 @@ class EntityRatingController extends Controller
                     $form->get('rate')->getData()
                 );
 
-                return new JsonResponse(['success' => true]);
+                return new JsonResponse(
+                    [
+                        'success'        => true,
+                        'formName'       => $form->getName(),
+                        'entityRatingId' => 'entityrating-form-'.$form->get('entityType')->getData().'-'.$form->get('entityId')->getData(),
+                        'rateData'       => $ratingManager->getGlobalRateData($form->get('entityId')->getData(), $form->get('entityType')->getData()),
+                    ]
+                );
             }
         } catch (EntityRateIpLimitationReachedException $e) {
             return new JsonResponse(['success' => false, 'errorMessage' => $e->getMessage()], 300);
