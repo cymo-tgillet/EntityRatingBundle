@@ -111,16 +111,17 @@ class EntityRatingManager
     }
 
     /**
-     * @param $entityType
-     * @param $entityId
+     * @param      $entityType
+     * @param      $entityId
+     * @param null $formName
      *
      * @return \Symfony\Component\Form\FormInterface
      */
-    public function generateForm($entityType, $entityId)
+    public function generateForm($entityType, $entityId, $formName = null)
     {
         $annotation = $this->checkConfiguration($entityType);
 
-        return $this->formFactory->getForm($annotation, $entityType, $entityId);
+        return $this->formFactory->getForm($annotation, $entityType, $entityId, $formName);
     }
 
     protected function checkConfiguration($entityType)

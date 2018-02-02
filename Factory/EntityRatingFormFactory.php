@@ -21,13 +21,18 @@ class EntityRatingFormFactory
         $this->formFactory = $formFactory;
     }
 
-    public function getForm(Rated $annotation, $entityType, $entityId)
+    public function getForm(Rated $annotation, $entityType, $entityId, $formName = null)
     {
         return $this->formFactory->createNamedBuilder(
-            'entityrating_'.$entityType.'_'.$entityId,
+            $formName ?? 'entityrating_'.uniqid(),
             FormType::class,
             null,
-            ['attr' => ['class' => 'entityrating-form']]
+            [
+                'attr' => [
+                    'class'                 => 'entityrating-form',
+                    'data-entity-rating-id' => 'entityrating-form-'.$entityType.'-'.$entityId,
+                ],
+            ]
         )
             ->add(
                 'rate',

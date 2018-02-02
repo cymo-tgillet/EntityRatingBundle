@@ -1,13 +1,18 @@
 var EntityRating = function (options) {
 
     var self = this;
-    var sendForm = function () {
+    var sendForm = function (e) {
+        var data = self.options.form.serializeArray();
+        data.push({name : 'form_name', value : self.options.form.attr('name')});
+
+        var sameEntityRatingIdForms = $('form[data-entity-rating-id="' + self.options.form.data('entity-rating-id') + '"]');
+        sameEntityRatingIdForms.find(self.options.radioButtonClass + '[value=' + e.target.value + ']').prop('checked', true);
         $.post({
             url  : Routing.generate('cymo_entity_rating_rate', {
                 id   : self.options.form.find('input.entity-id').val(),
                 type : self.options.form.find('input.entity-type').val()
             }),
-            data : self.options.form.serialize()
+            data : data
         }).then(function (response) {
             if (self.options.successCallback !== undefined) {
                 self.options.successCallback(response);

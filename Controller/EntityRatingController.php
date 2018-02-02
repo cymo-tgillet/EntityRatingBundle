@@ -17,7 +17,7 @@ class EntityRatingController extends Controller
         $ratingManager = $this->container->get($manager);
 
         try {
-            $form = $ratingManager->generateForm($type, $id);
+            $form = $ratingManager->generateForm($type, $id, $request->request->get('form_name'));
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {
                 $ratingManager->rate(
