@@ -1,6 +1,6 @@
 ## Entities Rating bundle
 
-#### Installation
+#### Installation
 
 The easiest way is with [Composer](https://getcomposer.org/) package manager
 ``` json
