@@ -1,8 +1,8 @@
-<div class="entity-rating-wrapper" data-entity-rating-id="{{ form.vars.attr['data-entity-rating-id'] }}">
+<div class="entity-rating-widget-wrapper" data-entity-rating-id="{{ form.vars.attr['data-entity-rating-id'] }}">
     <div class="entity-rating-rate-container" {% if globalRateData.rateCount == 0 %}style="display: none;" {% endif %}>
-        <div itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
-            <meta itemprop="worstRating" content="{{ globalRateData.minRate }}">
-            <span itemprop="ratingValue">{{ globalRateData.averageRate }}</span> / <span itemprop="bestRating">{{ globalRateData.maxRate }}</span> (<span itemprop="ratingCount">{{ globalRateData.rateCount }}</span> vote{{ globalRateData.rateCount > 1 ? 's' : '' }})
+        <div class="aggregateRating" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
+            <meta class="worstRating" itemprop="worstRating" content="{{ globalRateData.minRate }}">
+            <span class="rating-rate-value"><span class="ratingValue" itemprop="ratingValue">{{ globalRateData.averageRate }}</span><span class="rating-rate-separator">/</span><span class="bestRating" itemprop="bestRating">{{ globalRateData.maxRate }}</span></span> <span class="rating-rate-count-value">(<span class="ratingCount" itemprop="ratingCount">{{ globalRateData.rateCount }}</span> vote{{ globalRateData.rateCount > 1 ? 's' : '' }})</span>
         </div>
     </div>
     <div class="entity-rating-form-container">
