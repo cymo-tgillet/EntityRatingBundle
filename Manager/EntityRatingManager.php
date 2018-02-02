@@ -162,8 +162,8 @@ class EntityRatingManager
         $averageRateResult = $this->entityRateRepository->getEntityAverageRate($entityId, $entityType);
 
         return [
-            'averageRate' => round($averageRateResult['average_rate'], 1),
-            'rateCount'   => $averageRateResult['rate_count'],
+            'averageRate' => (float)round($averageRateResult['average_rate'], 1),
+            'rateCount'   => (int)$averageRateResult['rate_count'],
             'minRate'     => $annotation->getMin(),
             'maxRate'     => $annotation->getMax(),
         ];
