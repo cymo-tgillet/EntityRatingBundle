@@ -7,7 +7,7 @@
 The easiest way is with [Composer](https://getcomposer.org/) package manager
 ```json
 "require": {
-    "cymo/entity-rating-bundle": "dev-master"
+    "cymo/entity-rating-bundle": "^1.0"
 }
 ```
 
