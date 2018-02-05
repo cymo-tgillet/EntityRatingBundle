@@ -4,8 +4,11 @@ services:
       arguments:
       - '@annotations.reader'
       - '@cymo.entity_rating_bundle.form_factory'
-      - '@service_container'
       - '@event_dispatcher'
+      - '@doctrine.orm.entity_manager'
+      - '%cymo_entity_rating.entity_rating_class%'
+      - '%cymo_entity_rating.map_type_to_class%'
+      - '%cymo_entity_rating.rate_by_ip_limitation%'
   cymo.entity_rating_bundle.form_factory:
       class: Cymo\Bundle\EntityRatingBundle\Factory\EntityRatingFormFactory
       arguments:

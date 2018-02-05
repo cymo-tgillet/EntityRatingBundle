@@ -215,8 +215,9 @@ use Cymo\Bundle\EntityRatingBundle\Entity\EntityRateInterface;
 use Cymo\Bundle\EntityRatingBundle\Factory\EntityRatingFormFactory;
 use Cymo\Bundle\EntityRatingBundle\Manager\EntityRatingManager as BaseEntityRatingManager;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Symfony\Component\DependencyInjection\Container;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class EntityRatingManager extends BaseEntityRatingManager
@@ -227,13 +228,17 @@ class EntityRatingManager extends BaseEntityRatingManager
     public function __construct(
         AnnotationReader $annotationReader,
         EntityRatingFormFactory $formFactory,
-        Container $container,
-        EventDispatcherInterface $eventDispatcher)
-    {
-        parent::__construct($annotationReader, $formFactory, $container, $eventDispatcher);
+        EventDispatcherInterface $eventDispatcher,
+        EntityManager $entityManager,
+        $entityRatingClass,
+        $mapTypeToClass,
+        $rateByIpLimitation,
+        TokenStorage $tokenStorage
+        ){
+        parent::__construct($annotationReader, $formFactory, $eventDispatcher, $entityManager, $entityRatingClass, $mapTypeToClass, $rateByIpLimitation);
 
         /** @var TokenInterface $token */
-        $token = $this->container->get('security.token_storage')->getToken();
+        $token = $tokenStorage->getToken();
         if ($token !== null && is_object($token->getUser())) {
             $this->user = $token->getUser();
         }
@@ -279,6 +284,7 @@ class EntityRatingManager extends BaseEntityRatingManager
 acme.entity_rating.manager:
     class: Acme\AppBundle\Manager\EntityRatingManager
     parent: cymo.entity_rating_bundle.manager
+    arguments: ['@security.token_storage']
 ```
 
 #### Events

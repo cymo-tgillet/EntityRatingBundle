@@ -13,7 +13,7 @@ use Cymo\Bundle\EntityRatingBundle\Exception\UnsupportedEntityRatingClassExcepti
 use Cymo\Bundle\EntityRatingBundle\Factory\EntityRatingFormFactory;
 use Cymo\Bundle\EntityRatingBundle\Repository\EntityRateRepository;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Symfony\Component\DependencyInjection\Container;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -32,31 +32,34 @@ class EntityRatingManager
      */
     protected $entityRateRepository;
     /**
-     * @var Container
-     */
-    protected $container;
-    /**
      * @var EventDispatcher
      */
     protected $eventDispatcher;
 
+    protected $entityRatingClass;
+    protected $mapTypeToClass;
+    protected $rateByIpLimitation;
+
     public function __construct(
         AnnotationReader $annotationReader,
         EntityRatingFormFactory $formFactory,
-        Container $container,
-        EventDispatcherInterface $eventDispatcher
+        EventDispatcherInterface $eventDispatcher,
+        EntityManager $entityManager,
+        $entityRatingClass,
+        $mapTypeToClass,
+        $rateByIpLimitation
     ) {
-        $this->container        = $container;
         $this->annotationReader = $annotationReader;
         $this->formFactory      = $formFactory;
         $this->eventDispatcher  = $eventDispatcher;
-        $this->entityManager    = $container->get('doctrine.orm.entity_manager');
+        $this->entityManager    = $entityManager;
 
         $this->userIp    = $_SERVER['REMOTE_ADDR'];
         $this->userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
-        $this->configTypes          = $this->container->getParameter('cymo_entity_rating.map_type_to_class');
-        $this->entityRatingClass    = $this->container->getParameter('cymo_entity_rating.entity_rating_class');
+        $this->entityRatingClass    = $entityRatingClass;
+        $this->mapTypeToClass       = $mapTypeToClass;
+        $this->rateByIpLimitation   = $rateByIpLimitation;
         $this->entityRateRepository = $this->entityManager->getRepository($this->entityRatingClass);
     }
 
@@ -126,12 +129,12 @@ class EntityRatingManager
 
     protected function checkConfiguration($entityType)
     {
-        if (false === array_key_exists($entityType, $this->configTypes)) {
+        if (false === array_key_exists($entityType, $this->mapTypeToClass)) {
             throw new UndeclaredEntityRatingTypeException(sprintf('You must declare the %s type and the corresponding class under the cymo_entity_rating.map_type_to_class configuration key.', $entityType));
         }
 
-        if (false === $annotation = $this->typeIsSupported($this->configTypes[$entityType])) {
-            throw new UnsupportedEntityRatingClassException(sprintf('Class does not support EntityRating, you must add the `Rated` annotation to the %s class first', $this->configTypes[$entityType]));
+        if (false === $annotation = $this->typeIsSupported($this->mapTypeToClass[$entityType])) {
+            throw new UnsupportedEntityRatingClassException(sprintf('Class does not support EntityRating, you must add the `Rated` annotation to the %s class first', $this->mapTypeToClass[$entityType]));
         }
 
         return $annotation;
@@ -171,7 +174,7 @@ class EntityRatingManager
 
     protected function allowRatingEntity($entityId, $entityType)
     {
-        $rateByIpLimitation = $this->container->getParameter('cymo_entity_rating.rate_by_ip_limitation');
+        $rateByIpLimitation = $this->rateByIpLimitation;
 
         if ($rateByIpLimitation == 0) {
             return true;
@@ -185,7 +188,7 @@ class EntityRatingManager
             ]
         );
 
-        return count($rates) < $this->container->getParameter('cymo_entity_rating.rate_by_ip_limitation');
+        return count($rates) < $this->rateByIpLimitation;
     }
 
     public function getUserCurrentRate($entityId, $entityType, $ignoreFields = [])
