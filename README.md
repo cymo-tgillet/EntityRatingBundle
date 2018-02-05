@@ -174,9 +174,11 @@ new EntityRating({
 
 ### Advanced usage 
 
-#### Adding a relationship to the Rate entity (ex: User)
+#### Adding a relationship to the Rate entity
 
-1. We need to add the user field to the entity
+Example: **saving the logged user in the rate Entity**
+
+1. Add the user field to the entity
 
 ```php
  /**
@@ -203,7 +205,7 @@ new EntityRating({
  }
 ```
 
-2. Extending the default manager to integrate the User
+2. Extend the default manager to handle the User
 
 ```php
 
@@ -272,7 +274,7 @@ class EntityRatingManager extends BaseEntityRatingManager
 }
 ```
 
-3. Defining a new manager service to use in your controller
+3. Define a new manager service to use in your controller
 ```yaml
 acme.entity_rating.manager:
     class: Acme\AppBundle\Manager\EntityRatingManager
