@@ -32,7 +32,7 @@ cymo_entity_rating:
     resource: "@CymoEntityRatingBundle/Resources/config/routing.yml"
     prefix:   /
 ```
-#### Configuration
+#### Configuration
 
 Extending the abstract entity to create your own
 ```php
@@ -137,7 +137,7 @@ Display the form in the view:
 {% include 'CymoEntityRatingBundle::ratingWidget.html.twig' with {'form':ratingForm, 'globalRateData':globalRateData} only %}
 ```
 
-#### Importing the assets
+#### Importing the assets
 
 You can import them directly:
 
@@ -174,7 +174,7 @@ new EntityRating({
 
 ### Advanced usage 
 
-#### Adding a relationship to the Rate entity (ex: User)
+#### Adding a relationship to the Rate entity (ex: User)
 
 1. We need to add the user field to the entity
 
