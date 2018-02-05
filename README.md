@@ -2,7 +2,7 @@
 
 ![Rating example](http://screensha.re/6FFd5/cpLRe0YZQv.png)
 
-#### Installation
+#### Installation
 
 The easiest way is with [Composer](https://getcomposer.org/) package manager
 ```json
