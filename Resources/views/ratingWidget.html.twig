@@ -1,8 +1,10 @@
+{% set printProps = globalRateData.rateCount > 0 %}
 <div class="entity-rating-widget-wrapper" data-entity-rating-id="{{ form.vars.attr['data-entity-rating-id'] }}">
     <div class="entity-rating-rate-container" {% if globalRateData.rateCount == 0 %}style="display: none;" {% endif %}>
-        <div class="aggregateRating" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
-            <meta class="worstRating" itemprop="worstRating" content="{{ globalRateData.minRate }}">
-            <span class="rating-rate-value"><span class="ratingValue" itemprop="ratingValue">{{ globalRateData.averageRate }}</span><span class="rating-rate-separator">/</span><span class="bestRating" itemprop="bestRating">{{ globalRateData.maxRate }}</span></span> <span class="rating-rate-count-value">(<span class="ratingCount" itemprop="ratingCount">{{ globalRateData.rateCount }}</span> vote{{ globalRateData.rateCount > 1 ? 's' : '' }})</span>
+        <div class="aggregateRating" {% if printProps %}itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating"{% endif %}>
+            {% if printProps %}<meta class="worstRating" itemprop="worstRating" content="{{ globalRateData.minRate }}">{% endif %}
+            <span class="rating-rate-value"><span class="ratingValue" {% if printProps %}itemprop="ratingValue"{% endif %}>{{ globalRateData.averageRate }}</span><span class="rating-rate-separator">/</span><span class="bestRating" {% if printProps %}itemprop="bestRating"{% endif %}>{{ globalRateData.maxRate }}</span></span> <span
+                    class="rating-rate-count-value">(<span class="ratingCount" {% if printProps %}itemprop="ratingCount"{% endif %}>{{ globalRateData.rateCount }}</span> vote{{ globalRateData.rateCount > 1 ? 's' : '' }})</span>
         </div>
     </div>
     <div class="entity-rating-form-container">
