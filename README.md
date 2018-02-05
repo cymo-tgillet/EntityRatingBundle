@@ -98,7 +98,7 @@ cymo_entity_rating:
      # Your EntityRate namespace, persisted in the DB (according to the namespace of the entity previously created)
      entity_rating_class: Acme\AppBundle\Entity\EntityRate
      # If you decide to extend the default manager, put the service name here
-     entity_rating_manager_service: blogtrotting.entity_rating.manager
+     entity_rating_manager_service: acme.entity_rating.manager
      # Maximum number of rate allowed by IP for a given entity
      rate_by_ip_limitation: 10
      # Map the alias used in frontend and the corresponding class
