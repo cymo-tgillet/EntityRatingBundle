@@ -16,7 +16,7 @@
   "require": {
     "php": ">=7",
     "symfony/symfony": ">=3",
-    "doctrine/orm": "2.5.*",
+    "doctrine/orm": ">=2.5",
     "twig/twig": "~1.34|~2.4"
   },
   "autoload": {
