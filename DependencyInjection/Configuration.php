@@ -16,8 +16,8 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode    = $treeBuilder->root('cymo_entity_rating_bundle');
+        $treeBuilder = new TreeBuilder('cymo_entity_rating_bundle');
+        $rootNode    = $treeBuilder->getRootNode();
         $rootNode
             ->children()
                 ->scalarNode('entity_rating_class')

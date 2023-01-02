@@ -12,7 +12,7 @@ use Cymo\Bundle\EntityRatingBundle\Exception\UndeclaredEntityRatingTypeException
 use Cymo\Bundle\EntityRatingBundle\Exception\UnsupportedEntityRatingClassException;
 use Cymo\Bundle\EntityRatingBundle\Factory\EntityRatingFormFactory;
 use Cymo\Bundle\EntityRatingBundle\Repository\EntityRateRepository;
-use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\Reader;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -20,7 +20,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class EntityRatingManager
 {
     /**
-     * @var AnnotationReader
+     * @var Reader
      */
     protected $annotationReader;
     /**
@@ -41,7 +41,7 @@ class EntityRatingManager
     protected $rateByIpLimitation;
 
     public function __construct(
-        AnnotationReader $annotationReader,
+        Reader $annotationReader,
         EntityRatingFormFactory $formFactory,
         EventDispatcherInterface $eventDispatcher,
         EntityManager $entityManager,
